@@ -1,0 +1,9 @@
+name: test-binder
+
+on:
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  binder:
+    uses: eds-book/notebooks-workflows/.github/workflows/binder.yaml@main

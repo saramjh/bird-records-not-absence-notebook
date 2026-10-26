@@ -1,0 +1,8 @@
+name: test-container
+
+on:
+  pull_request:
+
+jobs:
+  test-build:
+    uses: eds-book/notebooks-workflows/.github/workflows/test.yaml@main
