@@ -6,3 +6,20 @@ on:
 jobs:
   test-build:
     uses: eds-book/notebooks-workflows/.github/workflows/test.yaml@main
+
+  # The shared workflow intentionally skips repos outside eds-book.
+  # Run our source/provenance invariants in the author's preparation repo.
+  validate-standalone:
+    if: github.repository_owner != 'eds-book'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the preparation branch
+        uses: actions/checkout@v4
+      - name: Select Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify offline GBIF provenance and grid tests
+        run: python -m unittest discover -s . -p 'test_*.py' -v
