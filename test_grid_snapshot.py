@@ -43,6 +43,34 @@ class AggregateSnapshotTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self._attempt(d)
 
+    def test_reject_more_accepted_than_source_dataset(self):
+        d=deepcopy(self.source)
+        source_with_39=next(k for k,v in d["first_page_dataset_counts"].items() if v==39)
+        d["accepted_dataset_counts"]={source_with_39:d["accepted_count"]}
+        with self.assertRaisesRegex(ValueError,"exceed source"):
+            self._attempt(d)
+
+    def test_reject_negative_dataset_source_with_balanced_total(self):
+        d=deepcopy(self.source)
+        keys=list(d["first_page_dataset_counts"])
+        d["first_page_dataset_counts"]={keys[0]:120,keys[1]:-20}
+        with self.assertRaisesRegex(ValueError,"invalid dataset record count"):
+            self._attempt(d)
+
+    def test_reject_invalid_dataset_doi(self):
+        d=deepcopy(self.source)
+        key=next(iter(d["dataset_dois"]))
+        d["dataset_dois"][key]="not-a-dataset-doi"
+        with self.assertRaisesRegex(ValueError,"invalid dataset citation DOI"):
+            self._attempt(d)
+
+    def test_reject_boolean_dataset_count(self):
+        d=deepcopy(self.source)
+        key=next(iter(d["accepted_dataset_counts"]))
+        d["accepted_dataset_counts"][key]=True
+        with self.assertRaises(ValueError):
+            self._attempt(d)
+
     def test_reject_duplicate_cells(self):
         d=deepcopy(self.source)
         d["cells_10km"].append(d["cells_10km"][0])

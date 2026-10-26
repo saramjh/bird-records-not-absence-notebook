@@ -36,6 +36,15 @@ def load_snapshot(path):
         raise ValueError("publisher count mismatch")
     if set(first_counts) != set(dois) or not set(accepted_counts).issubset(set(first_counts)):
         raise ValueError("missing publisher citation")
+    # Totals alone can hide impossible per-publisher screening results.
+    if (any(type(n) is not int or n <= 0 for n in first_counts.values()) or
+            any(type(n) is not int or n <= 0 for n in accepted_counts.values())):
+        raise ValueError("invalid dataset record count")
+    if any(accepted_counts[key] > first_counts[key] for key in accepted_counts):
+        raise ValueError("accepted records exceed source dataset page count")
+    if any(not isinstance(doi, str) or not doi.startswith("10.15468/") or len(doi) <= 9
+           for doi in dois.values()):
+        raise ValueError("invalid dataset citation DOI")
     fine, coarse = derive_grids(data.get("cells_10km"))
     if sum(fine.values()) != data["accepted_count"] or sum(coarse.values()) != data["accepted_count"]:
         raise ValueError("published grid does not conserve records")
