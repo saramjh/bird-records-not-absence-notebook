@@ -13,3 +13,11 @@ This page of the live API is non-random, not versioned and may change. It is **n
 Use the template's environment.yml with conda/mamba, open notebook.ipynb, and run all cells with an internet connection for the GBIF API. Non-network tests: python -m unittest discover -p 'test_*.py'.
 
 Only the preparation branch carries this candidate notebook; template workflow files under .github/workflows have not been modified.
+
+## Provenance, citation and execution QA (2026-10-26)
+
+The GBIF query's first 100 individual-record CC0 occurrences contained 61 from [iNaturalist](https://doi.org/10.15468/ab3s5x) and 39 from [NSMK local biodiversity recordings](https://doi.org/10.15468/ya2fjz). The overall iNaturalist dataset licence is **CC BY-NC 4.0** while some individual records are CC0; photos and sounds must be licensed separately. These two DOIs identify the contributing **datasets**, not a stable GBIF occurrence **download** for the sampled query. No precise locations or imagery were added to this repository.
+
+The notebook executed all four code cells on isolated Windows Python 3.13 (numpy 2.1.3, matplotlib 3.9.4, pyproj 3.7.1, nbclient 0.10.2), screening 50 accepted records and creating the 10 km / 50 km grid comparison. This is a local execution check, **not** successful Binder execution or Python 3.11 conda parity. All 50 accepted records originated from one source (iNaturalist); it is a source-biased non-random preview.
+
+The inherited template GitHub Action test job was **skipped as designed** for personal repositories by its upstream eds-book ownership guard; that does not constitute CI test success.
