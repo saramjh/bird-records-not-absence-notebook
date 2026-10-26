@@ -10,7 +10,7 @@ This page of the live API is non-random, not versioned and may change. It is **n
 
 ## Run
 
-Use the template's environment.yml with conda/mamba, open notebook.ipynb, and run all cells with an internet connection for the GBIF API. Non-network tests: python -m unittest discover -p 'test_*.py'.
+Use the template's environment.yml with conda/mamba, open notebook.ipynb, and run all cells offline using the bundled derived grid snapshot (LIVE_GBIF = False). Non-network tests: python -m unittest discover -p 'test_*.py'.
 
 Only the preparation branch carries this candidate notebook; template workflow files under .github/workflows have not been modified.
 
@@ -21,3 +21,11 @@ The GBIF query's first 100 individual-record CC0 occurrences contained 61 from [
 The notebook executed all four code cells on isolated Windows Python 3.13 (numpy 2.1.3, matplotlib 3.9.4, pyproj 3.7.1, nbclient 0.10.2), screening 50 accepted records and creating the 10 km / 50 km grid comparison. This is a local execution check, **not** successful Binder execution or Python 3.11 conda parity. All 50 accepted records originated from one source (iNaturalist); it is a source-biased non-random preview.
 
 The inherited template GitHub Action test job was **skipped as designed** for personal repositories by its upstream eds-book ownership guard; that does not constitute CI test success.
+
+## Frozen safe teaching snapshot
+
+The file data/first-page-grids-20261026.json retains only counts per 10 km projected grid cell, screening exclusions, publisher datasets/DOIs, and the original query/retrieval time. It includes no individual observation IDs, species identities, observers, dates or precise point coordinates. Its 50 km cells are calculated from the same 10 km counts using a shared projected origin.
+
+This is a non-random, source-biased, derived teaching aggregate; it is not a GBIF occurrence-download DOI or a biological range/absence result. Set LIVE_GBIF = True only if an opt-in current API example is specifically needed; current records and publisher credits require re-review. The default offline path allows a notebook runtime to be tested without relying on GBIF API uptime.
+
+Run python -m unittest discover -p test_*.py for screening and snapshot integrity checks. Full notebook execution still needs the Python notebook dependencies. A separately versioned GBIF download DOI, geographic source-selection caveats and Binder provider validation remain open publication requirements.
