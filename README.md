@@ -20,7 +20,7 @@ The GBIF query's first 100 individual-record CC0 occurrences contained 61 from [
 
 The notebook executed all four code cells on isolated Windows Python 3.13 (numpy 2.1.3, matplotlib 3.9.4, pyproj 3.7.1, nbclient 0.10.2), screening 50 accepted records and creating the 10 km / 50 km grid comparison. This is a local execution check, **not** successful Binder execution or Python 3.11 conda parity. All 50 accepted records originated from one source (iNaturalist); it is a source-biased non-random preview.
 
-The inherited template GitHub Action test job was **skipped as designed** for personal repositories by its upstream eds-book ownership guard; that does not constitute CI test success.
+The inherited EDS Book workflow intentionally **skips** tests on personal-author repositories. A historical [GitHub Actions run #40365940396](https://github.com/saramjh/bird-records-not-absence-notebook/actions/runs/40365940396) separately passed 18 offline source and grid tests and executed all four notebook code cells on Ubuntu/Python 3.11. Those author-only CI jobs were then removed, and `.github/workflows/test.yaml` restored to the exact [EDS Book template in commit 0ed35d9](https://github.com/saramjh/bird-records-not-absence-notebook/commit/0ed35d9732fdf69ad5bdd7fe098ac4f0f97464cd) to comply with the [author guidelines](https://edsbook.org/guidelines-authors#preparation). These are historical test receipts, not current workflow coverage, Binder validation, a GBIF occurrence-download DOI or editorial acceptance.
 
 ## Frozen safe teaching snapshot
 
