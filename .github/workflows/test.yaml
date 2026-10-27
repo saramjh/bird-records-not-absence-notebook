@@ -6,3 +6,18 @@ on:
 jobs:
   test-build:
     uses: eds-book/notebooks-workflows/.github/workflows/test.yaml@main
+
+  verify-gbif-provenance:
+    name: GBIF provenance - standalone offline tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout preparation sources
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify original occurrence filters and no-send claims
+        run: python -m unittest -v test_gbif_download_request
