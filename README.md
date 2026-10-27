@@ -2,7 +2,7 @@
 
 A preparation-stage Python notebook for Environmental Data Science Book idea [#14](https://github.com/eds-book/notebooks-ideas/issues/14), created from the [official Python template](https://github.com/eds-book/template_python).
 
-**Author:** Jihun Oh. The question arose while developing [KoreAves](https://koreaves.com); KoreAves is a disclosed optional case study, NOT this notebook's original data provider. No EDS Book peer review, Binder validation or publication is claimed.
+**Author:** Jihun Oh. The question arose while developing [KoreAves](https://koreaves.com); KoreAves is a disclosed optional case study, NOT this notebook's original data provider. No EDS Book peer review or publication is claimed.
 
 The notebook screens CC0-licensed records from a **bounded first page** of the live GBIF occurrence API, distinguishes missing coordinate uncertainty from zero uncertainty, compares 10 km and 50 km analyst-defined projected grids, and explains why record counts and blank cells do NOT establish bird abundance or absence.
 
@@ -28,4 +28,10 @@ The file data/first-page-grids-20261026.json retains only counts per 10 km proje
 
 This is a non-random, source-biased, derived teaching aggregate; it is not a GBIF occurrence-download DOI or a biological range/absence result. Set LIVE_GBIF = True only if an opt-in current API example is specifically needed; current records and publisher credits require re-review. The default offline path allows a notebook runtime to be tested without relying on GBIF API uptime.
 
-Run python -m unittest discover -p test_*.py for screening and snapshot integrity checks. Full notebook execution still needs the Python notebook dependencies. A separately versioned GBIF download DOI, geographic source-selection caveats and Binder provider validation remain open publication requirements.
+Run python -m unittest discover -p test_*.py for screening and snapshot integrity checks. Full notebook execution still needs the Python notebook dependencies. A separately versioned GBIF occurrence-download DOI, geographic source-selection review and publication-build QA remain open publication requirements.
+
+## Verified Binder runtime (27 October 2026)
+
+Binder executed all four code cells from [commit 3ae6a75](https://github.com/saramjh/bird-records-not-absence-notebook/commit/3ae6a7594b1544d71bf38add6100983722b8d749) successfully in one authenticated run, observed 02:35–02:37 UTC. Each cell returned `ok`, including the final Matplotlib figure. The actual PNG was inspected after the colorbar-overlap and dark-cell label-contrast fixes. The offline aggregate still contains 50 screened records, with 12 occupied 10 km cells and 8 occupied 50 km cells. The kernel was deleted after verification.
+
+This verifies the default offline teaching path and corrected figure rendering. It is not a DOI-backed GBIF data reproduction, publication-build validation, peer review, editorial acceptance or research adoption. The earlier CI receipts above remain separate from this Binder runtime check.
