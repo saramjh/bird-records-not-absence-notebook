@@ -6,6 +6,9 @@ are shipped in the repository. A dataset DOI is NOT an occurrence-download DOI.
 import json
 from collections import Counter
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
+
+from gbif_download_request import EXPECTED_SEARCH
 
 SCHEMA = "EDS_BOOK_GBIF_DERIVED_GRID_SNAPSHOT_V1"
 
@@ -18,7 +21,14 @@ def load_snapshot(path):
         raise ValueError("unverified occurrence-download DOI must not be asserted")
     if data.get("projected_crs") != "EPSG:32652" or data.get("grid_m") != 10000:
         raise ValueError("unsupported projected aggregation")
-    if data.get("first_page_limit") != 100 or data.get("query_country") != "KR":
+    if (data.get("first_page_limit") != 100 or data.get("rows_in_page") != 100
+            or data.get("query_country") != "KR" or data.get("query_year") != 2024
+            or data.get("query_taxon") != "Aves" or data.get("query_taxon_rank") != "class"):
+        raise ValueError("changed scientific source selection")
+    source = urlsplit(data.get("original_api_query", ""))
+    if (source.scheme != "https" or source.netloc != "api.gbif.org"
+            or source.path != "/v1/occurrence/search" or source.fragment
+            or parse_qs(source.query, keep_blank_values=True) != EXPECTED_SEARCH):
         raise ValueError("changed scientific source selection")
     if not isinstance(data.get("accepted_count"), int) or data["accepted_count"] <= 0:
         raise ValueError("invalid screened record count")
