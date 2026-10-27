@@ -31,6 +31,17 @@ Two legitimate GBIF occurrence downloads created for earlier **KoreAves** source
 
 These are **real download DOIs but are not the DOI for the 26 October 2026 illustrative snapshot**. The original GBIF search reported 5,519 matching records and this notebook retained only its mutable first 100 rows (50 accepted after screening). Creating a new DOI for the *complete* filtered download would identify that full versioned selection, **not retrospectively freeze the old first page**. A citable revision must rebuild the teaching aggregate from the actual DOI-versioned download, document the included records and publisher credit, and repeat figure/runtime checks. No such revision or matching download DOI is claimed here. See [GBIF download and citation requirements](https://www.gbif.org/citation-guidelines).
 
+### Preparing a reproducible GBIF download (no send)
+
+`gbif_download_request.py` generates an **offline request body** for a **new full-result** `DWCA` occurrence download with the original teaching sample's country, taxon, 2024, human-observation, CC0 and geospatial filters. It explicitly pins the historical **GBIF Backbone** taxonomy (`d7dddbf4-2cf0-4f39-9b2a-bb099caae36c`), because the original `taxonKey=212` used that scheme and a different checklist could change the result.
+
+```sh
+python gbif_download_request.py --email your-registered-gbif-email@example.org --output gbif-query-local.json
+python -m unittest discover -p 'test_*.py'
+```
+
+**No request is sent, no account credentials are read, and no DOI is created by this script.** Its output is a prospective download request requiring a separately authorized GBIF account holder to submit; the entire download will differ from the old first-100-row sample. Once GBIF returns an actual download key and DOI, rebuild the aggregate from that versioned archive, recheck publisher/record rights and counts, and rerun notebook/runtime tests. Do not copy the old first-page figure or attach either historical KoreAves DOI as the new source. See [GBIF API download instructions](https://techdocs.gbif.org/en/data-use/api-downloads).
+
 ## Frozen safe teaching snapshot
 
 The file data/first-page-grids-20261026.json retains only counts per 10 km projected grid cell, screening exclusions, publisher datasets/DOIs, and the original query/retrieval time. It includes no individual observation IDs, species identities, observers, dates or precise point coordinates. Its 50 km cells are calculated from the same 10 km counts using a shared projected origin.
