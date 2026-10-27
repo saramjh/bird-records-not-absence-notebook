@@ -18,6 +18,30 @@ class AggregateSnapshotTests(unittest.TestCase):
             p.write_text(json.dumps(data),encoding="utf8")
             return load_snapshot(p)
 
+    def test_reject_source_metadata_year_or_taxon_drift(self):
+        for field, changed in (("query_year", 2023), ("query_taxon", "Mammalia"),
+                               ("query_taxon_rank", "species")):
+            d = deepcopy(self.source)
+            d[field] = changed
+            with self.subTest(field=field), self.assertRaisesRegex(
+                ValueError, "changed scientific source selection"
+            ):
+                self._attempt(d)
+
+    def test_reject_original_api_query_filter_or_paging_drift(self):
+        url = self.source["original_api_query"]
+        changes = (("year=2024", "year=2023"),
+                   ("license=CC0_1_0", "license=CC_BY_4_0"),
+                   ("offset=0", "offset=100"),
+                   ("hasCoordinate=true", "hasCoordinate=false"))
+        for original, altered in changes:
+            d = deepcopy(self.source)
+            d["original_api_query"] = url.replace(original, altered)
+            with self.subTest(altered=altered), self.assertRaisesRegex(
+                ValueError, "changed scientific source selection"
+            ):
+                self._attempt(d)
+
     def test_snapshot_integrity(self):
         d=load_snapshot(SOURCE)
         fine,coarse=derive_grids(d["cells_10km"])
