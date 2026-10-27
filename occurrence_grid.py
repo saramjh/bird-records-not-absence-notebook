@@ -14,7 +14,7 @@ def screen(records, threshold=1000):
         if "creativecommons.org/publicdomain/zero/1.0" not in str(r.get("license") or "").lower():
             excluded["not_cc0"] += 1
             continue
-        if r.get("countryCode") != "KR" or r.get("basisOfRecord") != "HUMAN_OBSERVATION" or int(r.get("year") or 0) != 2024:
+        if r.get("countryCode") != "KR" or r.get("basisOfRecord") != "HUMAN_OBSERVATION" or r.get("year") not in (2024, "2024"):
             excluded["outside_scope"] += 1
             continue
         try:

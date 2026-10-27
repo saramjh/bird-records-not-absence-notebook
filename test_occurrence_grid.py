@@ -20,6 +20,19 @@ class QualityTests(unittest.TestCase):
         good,ex=screen([row(1),row(1)])
         self.assertEqual(len(good),1)
         self.assertEqual(ex["missing_or_duplicate_id"],1)
+    def test_invalid_or_fractional_year_is_excluded_without_crashing(self):
+        records = [
+            row(1, year="not-a-year"),
+            row(2, year=2024.9),
+            row(3, year="2024.9"),
+            row(4, year=None),
+            row(5, year="2024"),
+            row(6, year=2024),
+        ]
+        good, exclusions = screen(records)
+        self.assertEqual([g["id"] for g in good], ["5", "6"])
+        self.assertEqual(exclusions["outside_scope"], 4)
+
     def test_invalid_geo(self):
         good,ex=screen([row(1,decimalLatitude=100),row(2,year=2023)])
         self.assertFalse(good)
