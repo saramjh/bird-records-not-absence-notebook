@@ -22,6 +22,15 @@ The notebook executed all four code cells on isolated Windows Python 3.13 (numpy
 
 The inherited EDS Book workflow intentionally **skips** tests on personal-author repositories. A historical [GitHub Actions run #40365940396](https://github.com/saramjh/bird-records-not-absence-notebook/actions/runs/40365940396) separately passed 18 offline source and grid tests and executed all four notebook code cells on Ubuntu/Python 3.11. Those author-only CI jobs were then removed, and `.github/workflows/test.yaml` restored to the exact [EDS Book template in commit 0ed35d9](https://github.com/saramjh/bird-records-not-absence-notebook/commit/0ed35d9732fdf69ad5bdd7fe098ac4f0f97464cd) to comply with the [author guidelines](https://edsbook.org/guidelines-authors#preparation). These are historical test receipts, not current workflow coverage, Binder validation, a GBIF occurrence-download DOI or editorial acceptance.
 
+## Historical GBIF downloads are not a DOI for this selection
+
+Two legitimate GBIF occurrence downloads created for earlier **KoreAves** source work on 13 September 2026 should not be confused with the first-page teaching sample:
+
+- [10.15468/dl.sp8k2g](https://doi.org/10.15468/dl.sp8k2g): 2,298,104 records; an all-years, all-licences South Korea bird/PRESENT selection using Catalogue of Life Aves. It does not have this notebook's `year=2024`, `license=CC0_1_0` or `basisOfRecord=HUMAN_OBSERVATION` filters.
+- [10.15468/dl.u7tcq5](https://doi.org/10.15468/dl.u7tcq5): 3,359 records from one NSMK source dataset. It is likewise not this notebook's first-page selection.
+
+These are **real download DOIs but are not the DOI for the 26 October 2026 illustrative snapshot**. The original GBIF search reported 5,519 matching records and this notebook retained only its mutable first 100 rows (50 accepted after screening). Creating a new DOI for the *complete* filtered download would identify that full versioned selection, **not retrospectively freeze the old first page**. A citable revision must rebuild the teaching aggregate from the actual DOI-versioned download, document the included records and publisher credit, and repeat figure/runtime checks. No such revision or matching download DOI is claimed here. See [GBIF download and citation requirements](https://www.gbif.org/citation-guidelines).
+
 ## Frozen safe teaching snapshot
 
 The file data/first-page-grids-20261026.json retains only counts per 10 km projected grid cell, screening exclusions, publisher datasets/DOIs, and the original query/retrieval time. It includes no individual observation IDs, species identities, observers, dates or precise point coordinates. Its 50 km cells are calculated from the same 10 km counts using a shared projected origin.
