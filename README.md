@@ -12,7 +12,7 @@ This page of the live API is non-random, not versioned and may change. It is **n
 
 Use the template's environment.yml with conda/mamba, open notebook.ipynb, and run all cells offline using the bundled derived grid snapshot (LIVE_GBIF = False). Non-network tests: python -m unittest discover -p 'test_*.py'.
 
-Only the preparation branch carries this candidate notebook; template workflow files under .github/workflows have not been modified.
+Only the `preparation` branch carries this candidate notebook. The template workflow was temporarily extended for author-side offline verification on 27 October, then restored byte-for-byte to the upstream EDS Book version (commit [`0ed35d9`](https://github.com/saramjh/bird-records-not-absence-notebook/commit/0ed35d9732fdf69ad5bdd7fe098ac4f0f97464cd)).
 
 ## Provenance, citation and execution QA (2026-10-26)
 
