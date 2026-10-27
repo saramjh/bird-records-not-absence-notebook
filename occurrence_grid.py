@@ -1,5 +1,27 @@
 from collections import Counter
 from math import floor, isfinite
+from urllib.parse import urlsplit
+
+
+def is_cc0_record_license(value):
+    """Require a Creative Commons-owned CC0 URL, not a substring in another licence."""
+    if not isinstance(value, str):
+        return False
+    try:
+        parsed = urlsplit(value.strip())
+    except ValueError:
+        return False
+    return (
+        parsed.scheme.lower() in ("http", "https")
+        and parsed.netloc.lower() in ("creativecommons.org", "www.creativecommons.org")
+        and parsed.path.rstrip("/") in (
+            "/publicdomain/zero/1.0",
+            "/publicdomain/zero/1.0/legalcode",
+        )
+        and not parsed.query
+        and not parsed.fragment
+    )
+
 
 def screen(records, threshold=1000):
     if threshold <= 0:
@@ -11,7 +33,7 @@ def screen(records, threshold=1000):
             excluded["missing_or_duplicate_id"] += 1
             continue
         seen.add(rid)
-        if "creativecommons.org/publicdomain/zero/1.0" not in str(r.get("license") or "").lower():
+        if not is_cc0_record_license(r.get("license")):
             excluded["not_cc0"] += 1
             continue
         if r.get("countryCode") != "KR" or r.get("basisOfRecord") != "HUMAN_OBSERVATION" or r.get("year") not in (2024, "2024"):

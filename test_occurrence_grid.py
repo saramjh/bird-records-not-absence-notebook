@@ -13,6 +13,28 @@ class QualityTests(unittest.TestCase):
         good,ex=screen([row(1,coordinateUncertaintyInMeters=1000)])
         self.assertEqual(good[0]["datasetKey"],"publisher")
         self.assertEqual(ex,{})
+    def test_cc0_license_is_only_accepted_at_official_url(self):
+        deceptive = [
+            "https://example.org/notes?other=https://creativecommons.org/publicdomain/zero/1.0/legalcode",
+            "https://creativecommons.org.evil.example/publicdomain/zero/1.0/legalcode",
+            "https://creativecommons.org/publicdomain/zero/1.0-not-the-deed",
+            "https://creativecommons.org/licenses/by/4.0/?cc0=https://creativecommons.org/publicdomain/zero/1.0/",
+            "https://creativecommons.org/publicdomain/zero/1.0/legalcode?tracking=unverified",
+        ]
+        ok, excluded = screen([row(i + 1, license=lic) for i, lic in enumerate(deceptive)])
+        self.assertEqual(ok, [])
+        self.assertEqual(excluded["not_cc0"], len(deceptive))
+
+    def test_cc0_official_urls_retained(self):
+        valid = [
+            "https://creativecommons.org/publicdomain/zero/1.0/",
+            "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
+            "https://creativecommons.org/publicdomain/zero/1.0/legalcode",
+        ]
+        ok, rejected = screen([row(i + 1, license=lic) for i, lic in enumerate(valid)])
+        self.assertEqual(len(ok), len(valid))
+        self.assertEqual(rejected, {})
+
     def test_bad_license(self):
         good,ex=screen([row(1,license="https://creativecommons.org/licenses/by-nc/4.0/")])
         self.assertEqual(ex["not_cc0"],1)
