@@ -1,89 +1,57 @@
-# Python Notebook Repository Template
+# When a bird map looks empty
 
-This is a template repository containing a Jupyter notebook with a `python` kernel. 
+A preparation-stage Python notebook for Environmental Data Science Book idea [#14](https://github.com/eds-book/notebooks-ideas/issues/14), created from the [official Python template](https://github.com/eds-book/template_python).
 
-Please follow the instructions below to prepare your notebook repository to publish in EDS book. 
+**Author:** Jihun Oh. The question arose while developing [KoreAves](https://koreaves.com); KoreAves is a disclosed optional case study, NOT this notebook's original data provider. No EDS Book peer review or publication is claimed.
 
-Feel free to report bugs in the main EDS book repo ([here](https://github.com/alan-turing-institute/environmental-ds-book/issues/new/choose)).
+The notebook screens CC0-licensed records from a **bounded first page** of the live GBIF occurrence API, distinguishes missing coordinate uncertainty from zero uncertainty, compares 10 km and 50 km analyst-defined projected grids, and explains why record counts and blank cells do NOT establish bird abundance or absence.
 
-## How to use the template
+This page of the live API is non-random, not versioned and may change. It is **not a completed data product**. Before review, replace it with a [DOI-versioned GBIF occurrence download](https://www.gbif.org/citation-guidelines), audit dataset publisher credits and licence, and test the final notebook through Binder. No third-party photos or sound recordings are distributed. Fine-scale occurrence coordinates are not stored in the repository.
 
-### :point_right: Step 1: Use the template
+## Run
 
-Login to your GitHub account, and click on "Use this template". Choose a new name!
+Use the template's environment.yml with conda/mamba, open notebook.ipynb, and run all cells offline using the bundled derived grid snapshot (LIVE_GBIF = False). Non-network tests: python -m unittest discover -p 'test_*.py'.
 
-<img src=".github/img/step1a.png" width="1229" />
- 
-Choose a new name for the repository and select the public option. Don’t choose include all branches. Then click in the Create repository from template.
+Only the `preparation` branch carries this candidate notebook. The template workflow was restored to its upstream version at [`0ed35d9`](https://github.com/saramjh/bird-records-not-absence-notebook/commit/0ed35d9732fdf69ad5bdd7fe098ac4f0f97464cd), but that is **historical**, not the current workflow state. On 27 October, [`73e93e1`](https://github.com/saramjh/bird-records-not-absence-notebook/commit/73e93e1692cee657da1a46c2690c6bc228ba9257) added a separate owner-side pull-request test job. The inherited EDS Book build job remains gated to `eds-book` organization repositories.
 
-<img src=".github/img/step1b.png" width="767" />
+## Provenance, citation and initial local QA (26 October 2026)
 
-### :point_right: Step 2: Check permission for GitHub actions
+The GBIF query's first 100 individual-record CC0 occurrences contained 61 from [iNaturalist](https://doi.org/10.15468/ab3s5x) and 39 from [NSMK local biodiversity recordings](https://doi.org/10.15468/ya2fjz). The overall iNaturalist dataset licence is **CC BY-NC 4.0** while some individual records are CC0; photos and sounds must be licensed separately. These two DOIs identify the contributing **datasets**, not a stable GBIF occurrence **download** for the sampled query. No precise locations or imagery were added to this repository.
 
-The template repository contains a GitHub action workflow that posts a comment inside the PR. 
-The comment contains a "Test this PR on Binder" badge, which can be used to access the image defined by the PR in mybinder.org.
-To enable the GitHub action workflow, you must check the permission for GitHub actions in your repository.
+The notebook executed all four code cells on isolated Windows Python 3.13 (numpy 2.1.3, matplotlib 3.9.4, pyproj 3.7.1, nbclient 0.10.2), screening 50 accepted records and creating the 10 km / 50 km grid comparison. At that point, the local check alone did **not** establish Binder or Python 3.11 conda parity; a separate successful 27 October live Binder run is documented below. All 50 accepted records originated from one source (iNaturalist), so the preview remains source-biased and non-random.
 
-Go to the Settings tab of your repository, then click on Actions in the left sidebar, and then go to General. Scroll down to workflow permissions and check "Read and write permissions" is selected (see the image below).
+The inherited EDS Book **reusable build job** intentionally **skips** non-`eds-book` repositories. A historical [GitHub Actions run #40365940396](https://github.com/saramjh/bird-records-not-absence-notebook/actions/runs/40365940396) separately passed 18 offline source and grid tests and executed all four notebook code cells on Ubuntu/Python 3.11. The initial extra jobs were removed and the template restored at commit `0ed35d9`; that was later superseded by a narrower author-side PR check. The owner's earlier [PR run #40482375730](https://github.com/saramjh/bird-records-not-absence-notebook/actions/runs/40482375730) tested five GBIF provenance/no-send cases. Following the 27 October source-selection drift guard and regression additions, the existing owner-side PR job was expanded to run **all 28 offline source, screening and grid tests**. In [run #40488442826](https://github.com/saramjh/bird-records-not-absence-notebook/actions/runs/40488442826), Ubuntu/Python 3.11 reported **28 tests passed**; the inherited EDS Book `test-build` job was **skipped**. The new tests reject changed query year, taxon metadata, source filters and page offset in the illustrative snapshot. This is an author-side source-integrity check, **not** a current notebook publication build, new live Binder run, GBIF occurrence-download DOI, EDS Book editorial acceptance or research adoption.
 
-<img src=".github/img/step2.png" width="1920" />
+## Historical GBIF downloads are not a DOI for this selection
 
-Please ignore other failing GitHub actions in the forked repository, as they are not relevant for the preparation stage of the notebook.
+Two legitimate GBIF occurrence downloads created for earlier **KoreAves** source work on 13 September 2026 should not be confused with the first-page teaching sample:
 
-### :point_right: Step 3: Clone and edit 
+- [10.15468/dl.sp8k2g](https://doi.org/10.15468/dl.sp8k2g): 2,298,104 records; an all-years, all-licences South Korea bird/PRESENT selection using Catalogue of Life Aves. It does not have this notebook's `year=2024`, `license=CC0_1_0` or `basisOfRecord=HUMAN_OBSERVATION` filters.
+- [10.15468/dl.u7tcq5](https://doi.org/10.15468/dl.u7tcq5): 3,359 records from one NSMK source dataset. It is likewise not this notebook's first-page selection.
 
-Clone the repo in your local/remote machine. You can follow some basics in Git commands in GitHub in The Turing Way (see [here](https://the-turing-way.netlify.app/reproducible-research/vcs/vcs-github.html?highlight=git%20commands%20work%20github)).
+These are **real download DOIs but are not the DOI for the 26 October 2026 illustrative snapshot**. The original GBIF search reported 5,519 matching records and this notebook retained only its mutable first 100 rows (50 accepted after screening). Creating a new DOI for the *complete* filtered download would identify that full versioned selection, **not retrospectively freeze the old first page**. A citable revision must rebuild the teaching aggregate from the actual DOI-versioned download, document the included records and publisher credit, and repeat figure/runtime checks. No such revision or matching download DOI is claimed here. See [GBIF download and citation requirements](https://www.gbif.org/citation-guidelines).
 
-``
-git clone <insert GitHub link of the repository here>
-``
+### Preparing a reproducible GBIF download (no send)
 
-Create and checkout a branch with a name of your preference. 
+`gbif_download_request.py` generates an **offline request body** for a **new full-result** `DWCA` occurrence download with the original teaching sample's country, taxon, 2024, human-observation, CC0 and geospatial filters. It explicitly pins the historical **GBIF Backbone** taxonomy (`d7dddbf4-2cf0-4f39-9b2a-bb099caae36c`), because the original `taxonKey=212` used that scheme and a different checklist could change the result.
 
-``
-git branch <branch name>
-git checkout <branch name>
-``
+```sh
+python gbif_download_request.py --email your-registered-gbif-email@example.org --output gbif-query-local.json
+python -m unittest discover -p 'test_*.py'
+```
 
-Don't rename the filename of the notebook.
+**No request is sent, no account credentials are read, and no DOI is created by this script.** Its output is a prospective download request requiring a separately authorized GBIF account holder to submit; the entire download will differ from the old first-100-row sample. Once GBIF returns an actual download key and DOI, rebuild the aggregate from that versioned archive, recheck publisher/record rights and counts, and rerun notebook/runtime tests. Do not copy the old first-page figure or attach either historical KoreAves DOI as the new source. See [GBIF API download instructions](https://techdocs.gbif.org/en/data-use/api-downloads).
 
-Edit the notebook using the integrated development environment (IDE) of preference. We suggest visiting [Getting Started with Jupyter](https://foundations.projectpythia.org/foundations/getting-started-jupyter.html) by the Pythia project. 
+## Frozen safe teaching snapshot
 
-The minimal information in the edition refers to the proposed title and purpose of the notebook. Feel free to copy and paste the information filled when you submitted the Notebook Idea issue in the main EDS book repository.
+The file data/first-page-grids-20261026.json retains only counts per 10 km projected grid cell, screening exclusions, publisher datasets/DOIs, and the original query/retrieval time. It includes no individual observation IDs, species identities, observers, dates or precise point coordinates. Its 50 km cells are calculated from the same 10 km counts using a shared projected origin.
 
-For instance, the following screenshot shows a notebook with minimal information requirement in `jupyter lab`. 
+This is a non-random, source-biased, derived teaching aggregate; it is not a GBIF occurrence-download DOI or a biological range/absence result. Set LIVE_GBIF = True only if an opt-in current API example is specifically needed; current records and publisher credits require re-review. The default offline path allows a notebook runtime to be tested without relying on GBIF API uptime.
 
-<img src=".github/img/step3.png" width="1920" />
+Run python -m unittest discover -p test_*.py for screening and snapshot integrity checks. Independent local full-notebook runs require the Python dependencies in the template environment. The live Binder run below verified the offline teaching path on 27 October; a separately versioned GBIF occurrence-download DOI, geographic source-selection review and publication-build QA remain open.
 
-### :point_right: Step 4: Open a Pull Request (PR)
+## Verified Binder runtime (27 October 2026)
 
-After editing the notebook with minimal information, you can create a PR to the main branch. If you aren’t familiar how to open a PR, we suggest following the guidelines in [Opening a Pull Request on GitHub](https://foundations.projectpythia.org/foundations/github/github-pull-request.html) by the Pythia project.
+Binder executed all four code cells from [commit 3ae6a75](https://github.com/saramjh/bird-records-not-absence-notebook/commit/3ae6a7594b1544d71bf38add6100983722b8d749) successfully in one authenticated run, observed 02:35–02:37 UTC. Each cell returned `ok`, including the final Matplotlib figure. The actual PNG was inspected after the colorbar-overlap and dark-cell label-contrast fixes. The offline aggregate still contains 50 screened records, with 12 occupied 10 km cells and 8 occupied 50 km cells. The kernel was deleted after verification.
 
-The PR will trigger a GitHub action workflow that posts a comment inside the PR. The comment contains a "Test this PR on Binder" badge, which can be used to access the image defined by the PR in mybinder.org.
-
-### :point_right: Step 5: Test in Binder
-
-The workflow posts a comment inside a pull request, every time a pull request gets opened. The comment contains a "Test this PR on Binder" badge, which can be used to access the image defined by the PR in mybinder.org.
-
-<img src=".github/img/step5.png" width="923" />
-
-### :point_right: Step 6 - Update 
-You can update the notebook as many times you want within the same PR. You can also open a new PR, but make sure you merge or close previous PR. 
-
-To start adding the notebook dependencies, you must update the `environment.yml` file. For instance, the screenshot below we pushed an `Update notebook.ipnyb` commit related to importing a new library in the Load libraries section. 
-
-<img src=".github/img/step6.png" width="923" />
-
-When the minimal working version of the notebook is ready, you should tag Editors-in-Chief (EiC) in the PR with the latest Binder badge. EiC will check how reproducible is the notebook and its feasibility for the reviewing stage.
-
-After EiC’s approval of the draft version of the notebook, EiC will fork the notebook repository to the [eds-book-gallery organisation](https://github.com/eds-book-gallery).
-
-EiC will prepare the notebook in the forked repository for the review process.
-
-### :point_right: Step 7 - Reviewing process
-EiC will open a PRE-REVIEW issue where a handling editor and authors suggest reviewers. The editor can give initial directions to authors for improving the notebook, especially if the notebook lacks some requested sections. Once reviewers agreed on the revision, EiC opens a REVIEW issue.
-
-We suggest to read further details of the REVIEW process in the publishing guidelines (see [here](https://github.com/alan-turing-institute/environmental-ds-book/blob/master/book/publishing/guidelines/guidelines-authors.md)). 
-
-## Credits
-This template uses [2i2c’s hub-user-image-template](https://github.com/2i2c-org/hub-user-image-template) released under BSD-3-Clause license. We also acknowledge the [static-export-template](https://github.com/JuliaPluto/static-export-template) of Julia Pluto, in particular the well-documented README file.
+This verifies the default offline teaching path and corrected figure rendering. It is not a DOI-backed GBIF data reproduction, publication-build validation, peer review, editorial acceptance or research adoption. The earlier CI receipts above remain separate from this Binder runtime check.
