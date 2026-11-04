@@ -111,5 +111,23 @@ class AggregateSnapshotTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self._attempt(d)
 
+    def test_reject_unreviewed_extra_metadata(self):
+        d = deepcopy(self.source)
+        d["unexpected_extra_metadata"] = "not reviewed for publication"
+        with self.assertRaisesRegex(ValueError, "unexpected snapshot fields"):
+            self._attempt(d)
+
+    def test_reject_added_individual_observation(self):
+        d = deepcopy(self.source)
+        d["raw_record"] = {"gbifID": "synthetic-test-id", "decimalLatitude": 36.5}
+        with self.assertRaisesRegex(ValueError, "raw occurrence field"):
+            self._attempt(d)
+
+    def test_reject_nested_individual_coordinate_field(self):
+        d = deepcopy(self.source)
+        d["limitations"].append({"decimalLongitude": 127.4})
+        with self.assertRaisesRegex(ValueError, "raw occurrence field"):
+            self._attempt(d)
+
 if __name__=="__main__":
     unittest.main()
