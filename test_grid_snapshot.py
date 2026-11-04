@@ -123,6 +123,21 @@ class AggregateSnapshotTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "raw occurrence field"):
             self._attempt(d)
 
+    def test_reject_unreviewed_nested_object_in_limitations(self):
+        d = deepcopy(self.source)
+        d["limitations"].append({"unreviewed_contact": "synthetic@example.invalid"})
+        with self.assertRaisesRegex(ValueError, "invalid aggregate limitations"):
+            self._attempt(d)
+
+    def test_reject_nonprose_limitation_value(self):
+        for item in (123, None, "", ["nested"]):
+            d = deepcopy(self.source)
+            d["limitations"].append(item)
+            with self.subTest(item=item), self.assertRaisesRegex(
+                ValueError, "invalid aggregate limitations"
+            ):
+                self._attempt(d)
+
     def test_reject_nested_individual_coordinate_field(self):
         d = deepcopy(self.source)
         d["limitations"].append({"decimalLongitude": 127.4})
