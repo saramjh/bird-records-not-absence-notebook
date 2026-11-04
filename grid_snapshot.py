@@ -40,6 +40,12 @@ def load_snapshot(path):
     reject_raw_occurrence_fields(data)
     if set(data) != SNAPSHOT_FIELDS:
         raise ValueError("unexpected snapshot fields")
+    # Limitations are explanatory prose only, not an extension point for
+    # unreviewed raw records or arbitrary nested objects.
+    limitations = data.get("limitations")
+    if (not isinstance(limitations, list) or not limitations or
+            any(type(item) is not str or not item.strip() for item in limitations)):
+        raise ValueError("invalid aggregate limitations")
     if data.get("schema") != SCHEMA:
         raise ValueError("unrecognized snapshot schema")
     if data.get("GBIF_occurrence_download_doi") is not None:
