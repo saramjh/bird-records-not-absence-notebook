@@ -12,9 +12,34 @@ from gbif_download_request import EXPECTED_SEARCH
 
 SCHEMA = "EDS_BOOK_GBIF_DERIVED_GRID_SNAPSHOT_V1"
 
+# V1 permits only the audited aggregate metadata, never ad-hoc raw observations.
+SNAPSHOT_FIELDS = frozenset('schema retrieved_at_utc original_api_query query_country query_year query_taxon_rank query_taxon first_page_limit api_total_at_retrieval rows_in_page record_level_license_filter reported_uncertainty_max_m excluded accepted_count first_page_dataset_counts accepted_dataset_counts projected_crs grid_m cells_10km occupied_cells_10km occupied_cells_50km dataset_dois GBIF_occurrence_download_doi DOI_status limitations'.split())
+PRIVATE_OCCURRENCE_FIELDS = frozenset({
+    "gbifID", "occurrenceID", "decimalLatitude", "decimalLongitude",
+    "eventDate", "recordedBy", "scientificName", "individualCount",
+})
+
+
+def reject_raw_occurrence_fields(value):
+    """Reject per-record fields anywhere in a purported safe aggregate."""
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key in PRIVATE_OCCURRENCE_FIELDS:
+                raise ValueError("raw occurrence field in aggregate snapshot")
+            reject_raw_occurrence_fields(item)
+    elif isinstance(value, list):
+        for item in value:
+            reject_raw_occurrence_fields(item)
+
+
 def load_snapshot(path):
     """Load only an internally consistent published teaching aggregate."""
     data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("snapshot must be a mapping")
+    reject_raw_occurrence_fields(data)
+    if set(data) != SNAPSHOT_FIELDS:
+        raise ValueError("unexpected snapshot fields")
     if data.get("schema") != SCHEMA:
         raise ValueError("unrecognized snapshot schema")
     if data.get("GBIF_occurrence_download_doi") is not None:
