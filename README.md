@@ -44,6 +44,8 @@ python -m unittest discover -p 'test_*.py'
 
 ## Frozen safe teaching snapshot
 
+**Aggregate-data guard (4 November 2026):** The author-owned `grid_snapshot.load_snapshot` rejects unexpected top-level fields and rejects record-level occurrence IDs, coordinates, observer names and species fields even when nested. A synthetic-only regression test reproduced the prior acceptance of an unreviewed raw record and verifies that it is now rejected. [Commit `8f25157`](https://github.com/saramjh/bird-records-not-absence-notebook/commit/8f25157841f1def81edd5e8f0a2948819662a3cf) passed **31/31 local offline tests** on a fresh checkout. This is a guard against accidental inclusion, not proof that the historical sample is representative, DOI-frozen, independently reviewed or publication-ready.
+
 The file data/first-page-grids-20261026.json retains only counts per 10 km projected grid cell, screening exclusions, publisher datasets/DOIs, and the original query/retrieval time. It includes no individual observation IDs, species identities, observers, dates or precise point coordinates. Its 50 km cells are calculated from the same 10 km counts using a shared projected origin.
 
 This is a non-random, source-biased, derived teaching aggregate; it is not a GBIF occurrence-download DOI or a biological range/absence result. Set LIVE_GBIF = True only if an opt-in current API example is specifically needed; current records and publisher credits require re-review. The default offline path allows a notebook runtime to be tested without relying on GBIF API uptime.
