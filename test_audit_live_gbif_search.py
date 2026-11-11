@@ -11,7 +11,7 @@ def sample(record_id, uncertainty, dataset="synthetic-dataset"):
         "gbifID": record_id, "datasetKey": dataset,
         "license": "http://creativecommons.org/publicdomain/zero/1.0/legalcode",
         "countryCode": "KR", "basisOfRecord": "HUMAN_OBSERVATION",
-        "year": 2024, "decimalLatitude": 36.5, "decimalLongitude": 127.4,
+        "year": 2024, "occurrenceStatus": "DETECTED", "decimalLatitude": 36.5, "decimalLongitude": 127.4,
         "coordinateUncertaintyInMeters": uncertainty,
         "recordedBy": "Synthetic Tester",
     }
@@ -42,6 +42,15 @@ class LiveQueryAuditTests(unittest.TestCase):
             "other-dataset": 1, "synthetic-dataset": 1,
         })
         self.assertIsNone(report["versioned_occurrence_download_doi"])
+
+    def test_nondetected_occurrence_cannot_enter_full_query_accepted_counts(self):
+        detected = sample("one", 100)
+        missed = sample("two", 100)
+        missed["occurrenceStatus"] = "NOT_DETECTED"
+        report = audit_full_search(mock_pages([detected, missed]), page_size=2)
+        self.assertEqual(report["source_records"], 2)
+        self.assertEqual(report["accepted_after_illustrative_1000m_screen"], 1)
+        self.assertEqual(report["excluded"]["not_detected"], 1)
 
     def test_no_observation_level_data_in_report(self):
         report = audit_full_search(mock_pages([sample("synthetic-private-id", 100)]))
