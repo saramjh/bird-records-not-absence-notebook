@@ -1,10 +1,29 @@
 import unittest
 from occurrence_grid import screen,aggregate
 def row(id,**kwargs):
-    d={"gbifID":id,"license":"http://creativecommons.org/publicdomain/zero/1.0/legalcode","countryCode":"KR","country":"Korea, Republic of","basisOfRecord":"HUMAN_OBSERVATION","year":2024,"decimalLatitude":37.5,"decimalLongitude":127,"coordinateUncertaintyInMeters":500,"datasetKey":"publisher"}
+    d={"gbifID":id,"license":"http://creativecommons.org/publicdomain/zero/1.0/legalcode","countryCode":"KR","country":"Korea, Republic of","basisOfRecord":"HUMAN_OBSERVATION","year":2024,"decimalLatitude":37.5,"decimalLongitude":127,"coordinateUncertaintyInMeters":500,"datasetKey":"publisher","occurrenceStatus":"DETECTED"}
     d.update(kwargs)
     return d
 class QualityTests(unittest.TestCase):
+    def test_detected_and_legacy_present_are_screened_normally(self):
+        good, excluded = screen([row(1, occurrenceStatus="DETECTED"),
+                                 row(2, occurrenceStatus="PRESENT")])
+        self.assertEqual(len(good), 2)
+        self.assertEqual(excluded, {})
+
+    def test_survey_nondetections_are_never_counted_as_sightings(self):
+        good, excluded = screen([row(1, occurrenceStatus="NOT_DETECTED"),
+                                 row(2, occurrenceStatus="ABSENT")])
+        self.assertEqual(good, [])
+        self.assertEqual(excluded, {"not_detected": 2})
+
+    def test_unknown_or_missing_status_does_not_imply_detection(self):
+        good, excluded = screen([row(1, occurrenceStatus=None),
+                                 row(2, occurrenceStatus=""),
+                                 row(3, occurrenceStatus="UNCLASSIFIED")])
+        self.assertEqual(good, [])
+        self.assertEqual(excluded, {"unknown_occurrence_status": 3})
+
     def test_missing_uncertainty_is_excluded(self):
         good,ex=screen([row(1,coordinateUncertaintyInMeters=None)])
         self.assertFalse(good)
