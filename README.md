@@ -8,6 +8,19 @@ The notebook screens CC0-licensed records from a **bounded first page** of the l
 
 This page of the live API is non-random, not versioned and may change. It is **not a completed data product**. Before review, replace it with a [DOI-versioned GBIF occurrence download](https://www.gbif.org/citation-guidelines), audit dataset publisher credits and licence, and test the final notebook through Binder. No third-party photos or sound recordings are distributed. Fine-scale occurrence coordinates are not stored in the repository.
 
+## Two-minute reader exercise: what does an empty bird map tell us?
+
+Imagine you find a blank square on a map of South Korean bird records. Before treating it as evidence that no bird was present, check three things:
+
+1. **Which records were searched?** This example queries GBIF for 2024 human-observation records in South Korea, restricted to CC0 occurrences with coordinates and no flagged geospatial issue. It does not search every source or every year.
+2. **Which records survived the screen?** On 11 November 2026, a read-only check of the entire mutable search returned 5,519 rows. Of those, 5,208 lacked a reported coordinate-uncertainty value, 36 reported more than 1,000 m, and 275 passed the example's screen. All 275 came from one contributing dataset. The 1,000 m threshold is a teaching choice, not a standard for declaring an observation reliable.
+3. **How was the map drawn?** The separate **first-100-row teaching snapshot** kept 50 records and placed them in 12 occupied 10 km grid cells or 8 occupied 50 km cells. The cell size changes what looks occupied. These figures are from the small historical snapshot, **not** a map of the 275 passing records from the full search.
+
+**Question for a reader:** If a cell is blank, can we conclude that birds were absent? **No.** At most, this example says that no qualifying source record was drawn in that cell under these particular filters. It says nothing about whether anyone searched there, how thoroughly they looked, or whether they would have detected a bird.
+
+The [GET-only whole-query audit](audit_live_gbif_search.py) reports aggregate results without exporting precise coordinates or observer details. Its results can change as GBIF's search index changes; a versioned occurrence-download DOI is still needed for a reproducible published analysis. This is an author-owned learning aid, not an EDS Book-reviewed chapter or a biological survey.
+
+
 ## Run
 
 Use the template's environment.yml with conda/mamba, open notebook.ipynb, and run all cells offline using the bundled derived grid snapshot (LIVE_GBIF = False). Non-network tests: python -m unittest discover -p 'test_*.py'.
