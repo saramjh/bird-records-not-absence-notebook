@@ -42,6 +42,20 @@ python -m unittest discover -p 'test_*.py'
 
 **No request is sent, no account credentials are read, and no DOI is created by this script.** Its output is a prospective download request requiring a separately authorized GBIF account holder to submit; the entire download will differ from the old first-100-row sample. Once GBIF returns an actual download key and DOI, rebuild the aggregate from that versioned archive, recheck publisher/record rights and counts, and rerun notebook/runtime tests. Do not copy the old first-page figure or attach either historical KoreAves DOI as the new source. See [GBIF API download instructions](https://techdocs.gbif.org/en/data-use/api-downloads).
 
+### Recheck of the existing NSMK CC0 download (11 November 2026)
+
+The historical [GBIF occurrence download 10.15468/dl.u7tcq5](https://doi.org/10.15468/dl.u7tcq5) is a fixed 3,359-record archive from the National Science Museum of Korea's [bird observations dataset](https://doi.org/10.15468/ya2fjz). The archive rights and all occurrence licences are CC0. Its SHA-256 is 9ed28c2cfb96d83a0f0bdcba90598474efc1f34f675619c049da308ffce8c098.
+
+An offline recheck found 3,207 records dated 2024, all marked as human observations in South Korea, with coordinates and without reported geospatial issues. All 3,207 lack a reported coordinate-uncertainty value. The current notebook excludes missing uncertainty, so **zero** records from this archive pass that existing screen. Coordinate fields do not establish location precision.
+
+Run the read-only audit using a locally downloaded copy of the original GBIF DwC-A ZIP:
+
+    python audit_existing_gbif_doi.py path/to/original-download.zip
+
+The auditor checks the archive hash, dataset citation and source licences using only the Python standard library. It prints aggregate counts without exporting individual coordinates, observer details or IDs. No GBIF account or new download request is used. The original archive is **not** committed.
+
+This NSMK-only archive does not match the notebook's earlier nonrandom first-100-record sample that mixed providers. The existing first-page figure and notebook input are unchanged. Replacing them would require a separately justified screening decision, fresh figures and runtime tests. The EDS Book draft remains unsubmitted for editorial review.
+
 ## Frozen safe teaching snapshot
 
 **Aggregate-data guard (4 November 2026):** The author-owned `grid_snapshot.load_snapshot` rejects unexpected top-level fields and rejects record-level occurrence IDs, coordinates, observer names and species fields even when nested. A synthetic-only regression test reproduced the prior acceptance of an unreviewed raw record and verifies that it is now rejected. After the initial [31-test regression commit `8f25157`](https://github.com/saramjh/bird-records-not-absence-notebook/commit/8f25157841f1def81edd5e8f0a2948819662a3cf), [commit `dde748e`](https://github.com/saramjh/bird-records-not-absence-notebook/commit/dde748e5871020da301b8eb2ded1bc4a10118eb9) further restricted the `limitations` array to nonempty explanatory strings, rejecting arbitrary nested metadata. Its exact remote head passed **33/33 offline tests** on a fresh checkout. This is a guard against accidental inclusion, not proof that the historical sample is representative, DOI-frozen, independently reviewed or publication-ready.
