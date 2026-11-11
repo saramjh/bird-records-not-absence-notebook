@@ -41,6 +41,61 @@ class ExistingDOIAuditTests(unittest.TestCase):
                           "recordedBy", "synthetic-not-real-id", "Synthetic Person"):
             self.assertNotIn(forbidden, text)
 
+    @staticmethod
+    def make_record(uncertainty, *, latitude="36.5", longitude="127.4",
+                    record_id="synthetic-not-real-id", issues="false"):
+        row = ROW.replace(
+            "\t36.5\t127.4\t\t",
+            f"\t{latitude}\t{longitude}\t{uncertainty}\t",
+        ).replace("synthetic-not-real-id", record_id)
+        return row.replace("\ttrue\tfalse\t", f"\ttrue\t{issues}\t")
+
+    def test_strict_threshold_accepts_1000_not_1000_point_1(self):
+        rows = (self.make_record("1000", record_id="one") +
+                self.make_record("1000.1", record_id="two"))
+        with TemporaryDirectory() as temp:
+            result = audit_archive(self.make_zip(temp, rows=rows),
+                                   expected_sha256=None, exact_cohort=False)
+        self.assertEqual(result["year_2024_with_reported_coordinate_uncertainty"], 2)
+        self.assertEqual(result["strict_uncertainty_threshold_usable_records"], 1)
+
+    def test_strict_threshold_rejects_invalid_uncertainty(self):
+        rows = "".join(self.make_record(value, record_id=str(i))
+                       for i, value in enumerate(("-1", "nan", "inf", "invalid", "1001")))
+        with TemporaryDirectory() as temp:
+            result = audit_archive(self.make_zip(temp, rows=rows),
+                                   expected_sha256=None, exact_cohort=False)
+        self.assertEqual(result["year_2024_with_reported_coordinate_uncertainty"], 5)
+        self.assertEqual(result["strict_uncertainty_threshold_usable_records"], 0)
+
+    def test_strict_threshold_requires_valid_coordinates(self):
+        rows = (self.make_record("300", record_id="a", latitude="nan") +
+                self.make_record("300", record_id="b", latitude="91") +
+                self.make_record("300", record_id="c", longitude="-181") +
+                self.make_record("300", record_id="d", latitude="not-coordinate") +
+                self.make_record("300", record_id="e"))
+        with TemporaryDirectory() as temp:
+            result = audit_archive(self.make_zip(temp, rows=rows),
+                                   expected_sha256=None, exact_cohort=False)
+        self.assertEqual(result["strict_uncertainty_threshold_usable_records"], 1)
+
+    def test_strict_threshold_rejects_duplicate_and_missing_ids(self):
+        rows = (self.make_record("300", record_id="same") +
+                self.make_record("300", record_id="same") +
+                self.make_record("300", record_id=""))
+        with TemporaryDirectory() as temp:
+            result = audit_archive(self.make_zip(temp, rows=rows),
+                                   expected_sha256=None, exact_cohort=False)
+        self.assertEqual(result["strict_uncertainty_threshold_usable_records"], 1)
+
+    def test_strict_threshold_rejects_geospatial_issue(self):
+        rows = (self.make_record("300", record_id="bad", issues="true") +
+                self.make_record("300", record_id="ok", issues="false"))
+        with TemporaryDirectory() as temp:
+            result = audit_archive(self.make_zip(temp, rows=rows),
+                                   expected_sha256=None, exact_cohort=False)
+        self.assertEqual(result["strict_uncertainty_threshold_usable_records"], 1)
+
     def test_reject_checksum_change(self):
         with TemporaryDirectory() as temp:
             with self.assertRaisesRegex(ValueError, "checksum mismatch"):
