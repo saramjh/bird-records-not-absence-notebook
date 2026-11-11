@@ -9,6 +9,7 @@ import csv
 from hashlib import sha256
 import io
 import json
+from math import isfinite
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -19,7 +20,7 @@ ZIP_SHA256 = "9ed28c2cfb96d83a0f0bdcba90598474efc1f34f675619c049da308ffce8c098"
 REQUIRED_FIELDS = {
     "year", "datasetKey", "license", "basisOfRecord", "countryCode",
     "hasCoordinate", "hasGeospatialIssues", "decimalLatitude",
-    "decimalLongitude", "coordinateUncertaintyInMeters",
+    "decimalLongitude", "coordinateUncertaintyInMeters", "gbifID",
 }
 
 
@@ -31,6 +32,7 @@ def audit_archive(path, *, expected_sha256=ZIP_SHA256, exact_cohort=True):
         raise ValueError("archived GBIF download checksum mismatch")
     totals = Counter()
     years = Counter()
+    seen_ids = set()
     with ZipFile(source) as archive:
         if archive.testzip() is not None:
             raise ValueError("bad GBIF archive member")
@@ -66,10 +68,33 @@ def audit_archive(path, *, expected_sha256=ZIP_SHA256, exact_cohort=True):
                     totals["with_coordinate_field"] += 1
                 if row["hasGeospatialIssues"] == "false":
                     totals["without_reported_geospatial_issue"] += 1
-                if row["coordinateUncertaintyInMeters"].strip():
+                record_id = row["gbifID"].strip()
+                unique_id = bool(record_id) and record_id not in seen_ids
+                if record_id:
+                    seen_ids.add(record_id)
+                reported = row["coordinateUncertaintyInMeters"].strip()
+                if reported:
                     totals["with_reported_coordinate_uncertainty"] += 1
                 else:
                     totals["missing_reported_coordinate_uncertainty"] += 1
+                    continue
+                # Match the existing notebook's <=1,000 m uncertainty screen.
+                # Having a nonempty uncertainty field alone is insufficient.
+                try:
+                    uncertainty = float(reported)
+                    latitude = float(row["decimalLatitude"])
+                    longitude = float(row["decimalLongitude"])
+                except (ValueError, TypeError):
+                    continue
+                if (not unique_id
+                    or not all(isfinite(v) for v in (uncertainty, latitude, longitude))
+                    or not 0 <= uncertainty <= 1000
+                    or not -90 <= latitude <= 90
+                    or not -180 <= longitude <= 180
+                    or row["hasCoordinate"] != "true"
+                    or row["hasGeospatialIssues"] != "false"):
+                    continue
+                totals["strict_uncertainty_threshold_usable_records"] += 1
     if exact_cohort and (
         totals["all_records"] != 3359
         or totals["year_2024"] != 3207
@@ -93,7 +118,7 @@ def audit_archive(path, *, expected_sha256=ZIP_SHA256, exact_cohort=True):
             totals["missing_reported_coordinate_uncertainty"],
         "existing_notebook_first_page_selection_replaced": False,
         "strict_uncertainty_threshold_usable_records":
-            totals["with_reported_coordinate_uncertainty"],
+            totals["strict_uncertainty_threshold_usable_records"],
     }
 
 
