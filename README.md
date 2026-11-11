@@ -70,6 +70,12 @@ GBIF [normalizes older PRESENT/ABSENT values to DETECTED/NOT_DETECTED](https://g
 
 A read-only GBIF occurrence-status facet of the same 2024 South Korea search reported all 5,519 indexed records as DETECTED on 11 November 2026. The status guard therefore does not change the 275 qualifying records in that observed query. It protects future scans if the underlying indexed data or API status values change. These are still mutable search records, not a versioned GBIF occurrence download.
 
+### Offline notebook runtime check (11 November 2026)
+
+A copy of the existing preparation commit 150b8ebe6886 ran locally in a Windows Python 3.13.1 environment with NumPy 2.1.3, Matplotlib 3.9.4 and pyproj 3.7.1. With the LIVE_GBIF switch set to False, all four code cells executed against the bundled aggregate snapshot. The output reported 50 accepted records from the historical first 100 GBIF search results, with 12 occupied 10 km cells and 8 occupied 50 km cells. Inline figure rendering produced one 1052 by 577 pixel PNG. No new GBIF request was made and no individual occurrence records or coordinates were exported.
+
+This verifies local offline execution on Python 3.13 only. The declared Python 3.11 conda environment and the current commit on Binder have not been tested. The original notebook, aggregate snapshot and map source remain unchanged, and the first-page data still have no versioned occurrence-download DOI.
+
 ## Frozen safe teaching snapshot
 
 **Aggregate-data guard (4 November 2026):** The author-owned `grid_snapshot.load_snapshot` rejects unexpected top-level fields and rejects record-level occurrence IDs, coordinates, observer names and species fields even when nested. A synthetic-only regression test reproduced the prior acceptance of an unreviewed raw record and verifies that it is now rejected. After the initial [31-test regression commit `8f25157`](https://github.com/saramjh/bird-records-not-absence-notebook/commit/8f25157841f1def81edd5e8f0a2948819662a3cf), [commit `dde748e`](https://github.com/saramjh/bird-records-not-absence-notebook/commit/dde748e5871020da301b8eb2ded1bc4a10118eb9) further restricted the `limitations` array to nonempty explanatory strings, rejecting arbitrary nested metadata. Its exact remote head passed **33/33 offline tests** on a fresh checkout. This is a guard against accidental inclusion, not proof that the historical sample is representative, DOI-frozen, independently reviewed or publication-ready.
