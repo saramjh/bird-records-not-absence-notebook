@@ -64,6 +64,12 @@ Run 'python audit_live_gbif_search.py' only when explicitly opting in to a fresh
 
 These are **current search-index records, not a frozen GBIF download**. The API total was consistent across pages, but that does not guarantee a single immutable snapshot; later queries can differ. The original first-page grid exercise is unchanged. Even with full-query screening, every accepted record came from one provider, so neither the 275 accepted records nor the map can establish abundance or absence. A selection-specific versioned download DOI and final figure/runtime validation remain necessary before editorial submission.
 
+### Occurrence-status guard (11 November 2026)
+
+GBIF [normalizes older PRESENT/ABSENT values to DETECTED/NOT_DETECTED](https://gbif.github.io/gbif-api/apidocs/org/gbif/api/vocabulary/OccurrenceStatus.html). The screening code now accepts reported DETECTED or legacy PRESENT records and excludes NOT_DETECTED, ABSENT, or unrecognized/missing status. A surveyed non-detection must not be counted as a bird sighting. This does not turn an empty map cell into a surveyed absence.
+
+A read-only GBIF occurrence-status facet of the same 2024 South Korea search reported all 5,519 indexed records as DETECTED on 11 November 2026. The status guard therefore does not change the 275 qualifying records in that observed query. It protects future scans if the underlying indexed data or API status values change. These are still mutable search records, not a versioned GBIF occurrence download.
+
 ## Frozen safe teaching snapshot
 
 **Aggregate-data guard (4 November 2026):** The author-owned `grid_snapshot.load_snapshot` rejects unexpected top-level fields and rejects record-level occurrence IDs, coordinates, observer names and species fields even when nested. A synthetic-only regression test reproduced the prior acceptance of an unreviewed raw record and verifies that it is now rejected. After the initial [31-test regression commit `8f25157`](https://github.com/saramjh/bird-records-not-absence-notebook/commit/8f25157841f1def81edd5e8f0a2948819662a3cf), [commit `dde748e`](https://github.com/saramjh/bird-records-not-absence-notebook/commit/dde748e5871020da301b8eb2ded1bc4a10118eb9) further restricted the `limitations` array to nonempty explanatory strings, rejecting arbitrary nested metadata. Its exact remote head passed **33/33 offline tests** on a fresh checkout. This is a guard against accidental inclusion, not proof that the historical sample is representative, DOI-frozen, independently reviewed or publication-ready.
