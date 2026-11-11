@@ -70,11 +70,13 @@ GBIF [normalizes older PRESENT/ABSENT values to DETECTED/NOT_DETECTED](https://g
 
 A read-only GBIF occurrence-status facet of the same 2024 South Korea search reported all 5,519 indexed records as DETECTED on 11 November 2026. The status guard therefore does not change the 275 qualifying records in that observed query. It protects future scans if the underlying indexed data or API status values change. These are still mutable search records, not a versioned GBIF occurrence download.
 
-### Offline notebook runtime check (11 November 2026)
+### Offline notebook runtime checks (11 November 2026)
 
-A copy of the existing preparation commit 150b8ebe6886 ran locally in a Windows Python 3.13.1 environment with NumPy 2.1.3, Matplotlib 3.9.4 and pyproj 3.7.1. With the LIVE_GBIF switch set to False, all four code cells executed against the bundled aggregate snapshot. The output reported 50 accepted records from the historical first 100 GBIF search results, with 12 occupied 10 km cells and 8 occupied 50 km cells. Inline figure rendering produced one 1052 by 577 pixel PNG. No new GBIF request was made and no individual occurrence records or coordinates were exported.
+The original notebook was executed from the existing preparation branch in isolated Windows Python 3.13.1 and Python 3.11.17 environments. Both ran all four code cells with LIVE_GBIF set to False against the bundled aggregate snapshot. Each reported 50 accepted records from the historical first 100 GBIF search results, with 12 occupied 10 km cells and 8 occupied 50 km cells. Both rendered a 1052 by 577 pixel PNG with identical SHA-256 (2164acd8b8c90f7b1c702f5f0d08b3395fee02a34c6c18eaaf5f6e4bf4d462a5).
 
-This verifies local offline execution on Python 3.13 only. The declared Python 3.11 conda environment and the current commit on Binder have not been tested. The original notebook, aggregate snapshot and map source remain unchanged, and the first-page data still have no versioned occurrence-download DOI.
+The Python 3.11.17 check used NumPy 2.1.3, Matplotlib 3.9.4 and pyproj 3.7.2. The full 54-test suite also passed on that interpreter. The same notebook was previously tested on Python 3.13.1 with NumPy 2.1.3, Matplotlib 3.9.4 and pyproj 3.7.1. Both were offline runs; no new GBIF download or observation-level export occurred.
+
+These tests establish local Python 3.11 compatibility with the declared package families. The actual conda build and the current commit on the remote Binder service have not been verified. The original notebook, aggregate snapshot and map source remain unchanged, and the first-page records still lack a versioned occurrence-download DOI.
 
 ## Frozen safe teaching snapshot
 
