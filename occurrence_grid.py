@@ -39,6 +39,15 @@ def screen(records, threshold=1000):
         if r.get("countryCode") != "KR" or r.get("basisOfRecord") != "HUMAN_OBSERVATION" or r.get("year") not in (2024, "2024"):
             excluded["outside_scope"] += 1
             continue
+        # GBIF uses DETECTED / NOT_DETECTED; PRESENT / ABSENT are older
+        # aliases. A survey non-detection is not an occurrence observation.
+        status = str(r.get("occurrenceStatus") or "").strip().upper()
+        if status in ("NOT_DETECTED", "ABSENT"):
+            excluded["not_detected"] += 1
+            continue
+        if status not in ("DETECTED", "PRESENT"):
+            excluded["unknown_occurrence_status"] += 1
+            continue
         try:
             lat, lon = float(r["decimalLatitude"]), float(r["decimalLongitude"])
             if not(isfinite(lat) and isfinite(lon) and -90<=lat<=90 and -180<=lon<=180):
