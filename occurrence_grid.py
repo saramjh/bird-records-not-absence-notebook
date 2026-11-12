@@ -61,7 +61,7 @@ def screen(records, threshold=1000):
             continue
         try:
             unc=float(unc)
-            if not isfinite(unc) or unc<0:
+            if not isfinite(unc) or unc<=0:
                 raise ValueError("invalid")
         except (TypeError, ValueError):
             excluded["uncertainty_invalid"] += 1
