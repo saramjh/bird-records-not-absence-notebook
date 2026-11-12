@@ -18,6 +18,8 @@ Imagine you find a blank square on a map of South Korean bird records. Before tr
 
 **Question for a reader:** If a cell is blank, can we conclude that birds were absent? **No.** At most, this example says that no qualifying source record was drawn in that cell under these particular filters. It says nothing about whether anyone searched there, how thoroughly they looked, or whether they would have detected a bird.
 
+**Checklist entry versus a recent sighting.** The [2024 Birds Korea Checklist](https://www.birdskoreablog.org/?p=29311) lists Crested Kingfisher (*Megaceryle lugubris*, 뿔호반새) in Category 2. In that checklist, Category 2 denotes adequately documented records from before 2000 without the same level of documentation from 2000 onward. Its inclusion is a historical evidence statement; it cannot establish a 2024 observation, current breeding, abundance, or absence. Check the status category and evidence date before using a checklist to interpret a time-filtered record map.
+
 The [GET-only whole-query audit](audit_live_gbif_search.py) reports aggregate results without exporting precise coordinates or observer details. Its results can change as GBIF's search index changes; a versioned occurrence-download DOI is still needed for a reproducible published analysis. This is an author-owned learning aid, not an EDS Book-reviewed chapter or a biological survey.
 
 
