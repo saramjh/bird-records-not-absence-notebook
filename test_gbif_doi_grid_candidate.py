@@ -5,10 +5,12 @@ import io
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from gbif_download_request import BACKBONE, build_request, read_snapshot
-from gbif_doi_grid_candidate import audit_download_to_candidate
+from gbif_doi_grid_candidate import audit_download_to_candidate, MAX_UNCOMPRESSED_BYTES
 
 DOI = "10.15468/dl.test7"
 KEY = "0015299-260903145123482"
@@ -108,6 +110,21 @@ class ArchiveCandidateTests(unittest.TestCase):
             with self.subTest(sha=wrong), self.assertRaisesRegex(
                 ValueError, "SHA256"):
                 self._check(wrong)
+
+    def test_reject_oversized_member_before_decompression(self):
+        original_sha = self._zip()
+        fake_zip = MagicMock()
+        fake_zip.__enter__.return_value = fake_zip
+        fake_zip.infolist.return_value = [
+            SimpleNamespace(filename="occurrence.txt",
+                            file_size=MAX_UNCOMPRESSED_BYTES + 1)
+        ]
+        fake_zip.testzip.side_effect = AssertionError(
+            "testzip should not decompress an oversized archive")
+        with patch("gbif_doi_grid_candidate.ZipFile", return_value=fake_zip):
+            with self.assertRaisesRegex(ValueError, "ARCHIVE_TOO_LARGE_FOR_REVIEW"):
+                self._check(original_sha)
+        fake_zip.testzip.assert_not_called()
 
     def test_reject_download_metadata_size_mismatch(self):
         expected = self._zip()

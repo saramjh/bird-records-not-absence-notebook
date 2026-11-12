@@ -49,14 +49,18 @@ def audit_download_to_candidate(archive_path, metadata, snapshot, doi,
     if _sha256_file(path) != expected_zip_sha256:
         raise ValueError("ARCHIVE_SHA256_MISMATCH")
     with ZipFile(path) as archive:
+        # Check advertised uncompressed size before testzip() decompresses
+        # every member. A tiny compressed ZIP can expand beyond our limit.
+        members = archive.infolist()
+        if (any(item.file_size < 0 for item in members)
+            or sum(item.file_size for item in members) > MAX_UNCOMPRESSED_BYTES):
+            raise ValueError("ARCHIVE_TOO_LARGE_FOR_REVIEW")
         if archive.testzip() is not None:
             raise ValueError("CORRUPT_ARCHIVE_MEMBER")
-        names = archive.namelist()
+        names = [item.filename for item in members]
         if (len(names) != len(set(names)) or
             not {"occurrence.txt", "rights.txt", "citations.txt"}.issubset(names)):
             raise ValueError("ARCHIVE_REQUIRED_MEMBERS_MISSING_OR_DUPLICATE")
-        if sum(item.file_size for item in archive.infolist()) > MAX_UNCOMPRESSED_BYTES:
-            raise ValueError("ARCHIVE_TOO_LARGE_FOR_REVIEW")
         rights = archive.read("rights.txt").decode("utf-8-sig")
         citations = archive.read("citations.txt").decode("utf-8-sig")
         if ("creativecommons.org/publicdomain/zero/1.0" not in rights
