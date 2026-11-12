@@ -10,12 +10,12 @@ from audit_existing_gbif_doi import audit_archive
 HEADER = (
     "year\tdatasetKey\tlicense\tbasisOfRecord\tcountryCode\thasCoordinate\t"
     "hasGeospatialIssues\tdecimalLatitude\tdecimalLongitude\t"
-    "coordinateUncertaintyInMeters\tgbifID\trecordedBy\n"
+    "coordinateUncertaintyInMeters\tgbifID\toccurrenceStatus\trecordedBy\n"
 )
 ROW = (
     "2024\t3cba69c8-e24e-4229-8727-cfba163336fb\tCC0_1_0\t"
     "HUMAN_OBSERVATION\tKR\ttrue\tfalse\t36.5\t127.4\t\t"
-    "synthetic-not-real-id\tSynthetic Person\n"
+    "synthetic-not-real-id\tDETECTED\tSynthetic Person\n"
 )
 
 
@@ -43,12 +43,13 @@ class ExistingDOIAuditTests(unittest.TestCase):
 
     @staticmethod
     def make_record(uncertainty, *, latitude="36.5", longitude="127.4",
-                    record_id="synthetic-not-real-id", issues="false"):
+                    record_id="synthetic-not-real-id", issues="false", status="DETECTED"):
         row = ROW.replace(
             "\t36.5\t127.4\t\t",
             f"\t{latitude}\t{longitude}\t{uncertainty}\t",
         ).replace("synthetic-not-real-id", record_id)
-        return row.replace("\ttrue\tfalse\t", f"\ttrue\t{issues}\t")
+        return row.replace("\ttrue\tfalse\t", f"\ttrue\t{issues}\t").replace(
+            "\tDETECTED\t", f"\t{status}\t")
 
     def test_strict_threshold_accepts_1000_not_1000_point_1(self):
         rows = (self.make_record("1000", record_id="one") +
@@ -95,6 +96,32 @@ class ExistingDOIAuditTests(unittest.TestCase):
             result = audit_archive(self.make_zip(temp, rows=rows),
                                    expected_sha256=None, exact_cohort=False)
         self.assertEqual(result["strict_uncertainty_threshold_usable_records"], 1)
+
+    def test_strict_threshold_excludes_not_detected_and_unknown_status(self):
+        rows = "".join([
+            self.make_record("300", record_id="positive", status="DETECTED"),
+            self.make_record("300", record_id="legacy", status="PRESENT"),
+            self.make_record("300", record_id="nondetection", status="NOT_DETECTED"),
+            self.make_record("300", record_id="absent", status="ABSENT"),
+            self.make_record("300", record_id="unclassified", status=""),
+        ])
+        with TemporaryDirectory() as temp:
+            result = audit_archive(self.make_zip(temp, rows=rows),
+                                   expected_sha256=None, exact_cohort=False)
+        self.assertEqual(result["year_2024_records"], 5)
+        self.assertEqual(result["year_2024_excluded_non_detection_or_unknown_status"], 3)
+        self.assertEqual(result["strict_uncertainty_threshold_usable_records"], 2)
+
+    def test_reject_archive_missing_occurrence_status_field(self):
+        with TemporaryDirectory() as temp:
+            p = Path(temp) / "missing-status.zip"
+            with ZipFile(p, "w", ZIP_DEFLATED) as archive:
+                archive.writestr("rights.txt", "http://creativecommons.org/publicdomain/zero/1.0/legalcode")
+                archive.writestr("citations.txt", "https://doi.org/10.15468/ya2fjz")
+                archive.writestr("occurrence.txt", HEADER.replace("occurrenceStatus\t", "") +
+                                 ROW.replace("DETECTED\t", ""))
+            with self.assertRaisesRegex(ValueError, "required DwC fields missing"):
+                audit_archive(p, expected_sha256=None, exact_cohort=False)
 
     def test_reject_checksum_change(self):
         with TemporaryDirectory() as temp:

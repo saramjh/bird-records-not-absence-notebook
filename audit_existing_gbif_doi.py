@@ -19,7 +19,7 @@ DATASET_KEY = "3cba69c8-e24e-4229-8727-cfba163336fb"
 ZIP_SHA256 = "9ed28c2cfb96d83a0f0bdcba90598474efc1f34f675619c049da308ffce8c098"
 REQUIRED_FIELDS = {
     "year", "datasetKey", "license", "basisOfRecord", "countryCode",
-    "hasCoordinate", "hasGeospatialIssues", "decimalLatitude",
+    "hasCoordinate", "hasGeospatialIssues", "occurrenceStatus", "decimalLatitude",
     "decimalLongitude", "coordinateUncertaintyInMeters", "gbifID",
 }
 
@@ -62,6 +62,9 @@ def audit_archive(path, *, expected_sha256=ZIP_SHA256, exact_cohort=True):
                 if row["year"] != "2024":
                     continue
                 totals["year_2024"] += 1
+                if row["occurrenceStatus"].strip().upper() not in ("DETECTED", "PRESENT"):
+                    totals["excluded_non_detection_or_unknown_status"] += 1
+                    continue
                 if (row["hasCoordinate"] == "true"
                     and row["decimalLatitude"].strip()
                     and row["decimalLongitude"].strip()):
@@ -109,6 +112,8 @@ def audit_archive(path, *, expected_sha256=ZIP_SHA256, exact_cohort=True):
         "source_record_count": totals["all_records"],
         "year_counts": dict(sorted(years.items())),
         "year_2024_records": totals["year_2024"],
+        "year_2024_excluded_non_detection_or_unknown_status":
+            totals["excluded_non_detection_or_unknown_status"],
         "year_2024_with_coordinate_field": totals["with_coordinate_field"],
         "year_2024_without_reported_geospatial_issue":
             totals["without_reported_geospatial_issue"],
