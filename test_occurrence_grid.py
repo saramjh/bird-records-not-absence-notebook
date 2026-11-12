@@ -28,6 +28,16 @@ class QualityTests(unittest.TestCase):
         good,ex=screen([row(1,coordinateUncertaintyInMeters=None)])
         self.assertFalse(good)
         self.assertEqual(ex["uncertainty_missing"],1)
+    def test_zero_uncertainty_not_a_valid_accuracy_measure(self):
+        # GBIF recommends blank/NULL for unknown precision; zero does not mean exact.
+        data = [row(1, coordinateUncertaintyInMeters=0),
+                row(2, coordinateUncertaintyInMeters="0"),
+                row(3, coordinateUncertaintyInMeters=-1),
+                row(4, coordinateUncertaintyInMeters=1)]
+        accepted, excluded = screen(data)
+        self.assertEqual([x["id"] for x in accepted], ["4"])
+        self.assertEqual(excluded, {"uncertainty_invalid": 3})
+
     def test_boundary_and_provenance(self):
         good,ex=screen([row(1,coordinateUncertaintyInMeters=1000)])
         self.assertEqual(good[0]["datasetKey"],"publisher")
