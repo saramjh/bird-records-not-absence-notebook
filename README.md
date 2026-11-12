@@ -67,6 +67,12 @@ Run the read-only audit using a locally downloaded copy of the original GBIF DwC
 
 The auditor checks the archive hash, dataset citation and source licences using only the Python standard library. It prints aggregate counts without exporting individual coordinates, observer details or IDs. No GBIF account or new download request is used. The original archive is **not** committed.
 
+### Check a future full-result download DOI (GET only)
+
+After a GBIF account holder obtains a new DOI for the exact full query, run `python verify_download_doi.py --doi 10.15468/dl.YOURKEY`. The checker retrieves GBIF's public download metadata and compares the complete source predicates, the historical Backbone checklist key, the DwC-A format and the CC0 licence with this notebook's frozen query settings. It uses an unauthenticated GET and does not request a new download. If the DOI belongs to a different selection, the check fails. The historical NSMK DOI `10.15468/dl.u7tcq5` fails because its source predicate and checklist do not match.
+
+A metadata match alone does not verify the ZIP hash, publisher credits or record-level rights. Before replacing any figure, audit the returned download archive, rebuild the derived grid and recheck the notebook runtime. This author-owned PR remains in Draft.
+
 ### Original archive and occurrence-status recheck (12 November 2026)
 
 The [existing GBIF download](https://api.gbif.org/v1/occurrence/download/10.15468/dl.u7tcq5) was retrieved using its published key `0015299-260903145123482`. The 497,529-byte DwC-A ZIP matched SHA-256 `9ed28c2cfb96d83a0f0bdcba90598474efc1f34f675619c049da308ffce8c098`. Its interpreted `occurrence.txt` has 230 columns, including `occurrenceStatus`; all 3,359 records report `PRESENT`.
