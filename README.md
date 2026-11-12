@@ -73,6 +73,14 @@ After a GBIF account holder obtains a new DOI for the exact full query, run `pyt
 
 A metadata match alone does not verify the ZIP hash, publisher credits or record-level rights. Before replacing any figure, audit the returned download archive, rebuild the derived grid and recheck the notebook runtime. This author-owned PR remains in Draft.
 
+### Turn a verified DOI archive into a private grid candidate
+
+Once the owner has a matching full-query download DOI and its original ZIP, the optional `gbif_doi_grid_candidate.py` script checks the DOI metadata, ZIP size and SHA-256, source rights, per-record selection and observation status. It produces 10 km and 50 km aggregate counts without exporting the underlying observation IDs or coordinates.
+
+Example: `python gbif_doi_grid_candidate.py --doi 10.15468/dl.YOURKEY --archive original.zip --sha256 YOUR_VERIFIED_64_HEX_SHA --output candidate.json`
+
+The script refuses to overwrite an existing output. A candidate needs separate publisher attribution and record-rights review, the notebook's figure rebuild, and a fresh Binder test before any publication decision. The sample maps currently in the notebook remain unchanged.
+
 ### Original archive and occurrence-status recheck (12 November 2026)
 
 The [existing GBIF download](https://api.gbif.org/v1/occurrence/download/10.15468/dl.u7tcq5) was retrieved using its published key `0015299-260903145123482`. The 497,529-byte DwC-A ZIP matched SHA-256 `9ed28c2cfb96d83a0f0bdcba90598474efc1f34f675619c049da308ffce8c098`. Its interpreted `occurrence.txt` has 230 columns, including `occurrenceStatus`; all 3,359 records report `PRESENT`.
