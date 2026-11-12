@@ -67,6 +67,12 @@ Run the read-only audit using a locally downloaded copy of the original GBIF DwC
 
 The auditor checks the archive hash, dataset citation and source licences using only the Python standard library. It prints aggregate counts without exporting individual coordinates, observer details or IDs. No GBIF account or new download request is used. The original archive is **not** committed.
 
+### Original archive and occurrence-status recheck (12 November 2026)
+
+The [existing GBIF download](https://api.gbif.org/v1/occurrence/download/10.15468/dl.u7tcq5) was retrieved using its published key `0015299-260903145123482`. The 497,529-byte DwC-A ZIP matched SHA-256 `9ed28c2cfb96d83a0f0bdcba90598474efc1f34f675619c049da308ffce8c098`. Its interpreted `occurrence.txt` has 230 columns, including `occurrenceStatus`; all 3,359 records report `PRESENT`.
+
+The revised archive auditor now requires that status column and excludes `NOT_DETECTED`, `ABSENT` and unknown statuses from accepted records. On this original ZIP it returned 3,207 records for 2024, zero exclusions for occurrence status, and 3,207 missing reported coordinate-uncertainty values. No records passed the example's 1,000 m threshold. The archive was used in a temporary directory and was not committed. The status check also passed synthetic regression tests; the full remote `preparation` branch passed 56 offline tests at commit [`9c3c767`](https://github.com/saramjh/bird-records-not-absence-notebook/commit/9c3c7672b44ba244eb0de3285a0609fcb8a8f49b). These checks do not create a selection-specific download DOI.
+
 This NSMK-only archive does not match the notebook's earlier nonrandom first-100-record sample that mixed providers. The existing first-page figure and notebook input are unchanged. Replacing them would require a separately justified screening decision, fresh figures and runtime tests. The EDS Book draft remains unsubmitted for editorial review.
 
 ### Whole-query read-only check (11 November 2026)
