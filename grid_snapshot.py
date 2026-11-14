@@ -1,0 +1,113 @@
+"""Validate a safe, derived, nonrandom GBIF grid demonstration snapshot.
+
+Only aggregate 10-km cell counts, not original individual coordinates or IDs,
+are shipped in the repository. A dataset DOI is NOT an occurrence-download DOI.
+"""
+import json
+from collections import Counter
+from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
+
+from gbif_download_request import EXPECTED_SEARCH
+
+SCHEMA = "EDS_BOOK_GBIF_DERIVED_GRID_SNAPSHOT_V1"
+
+# V1 permits only the audited aggregate metadata, never ad-hoc raw observations.
+SNAPSHOT_FIELDS = frozenset('schema retrieved_at_utc original_api_query query_country query_year query_taxon_rank query_taxon first_page_limit api_total_at_retrieval rows_in_page record_level_license_filter reported_uncertainty_max_m excluded accepted_count first_page_dataset_counts accepted_dataset_counts projected_crs grid_m cells_10km occupied_cells_10km occupied_cells_50km dataset_dois GBIF_occurrence_download_doi DOI_status limitations'.split())
+PRIVATE_OCCURRENCE_FIELDS = frozenset({
+    "gbifID", "occurrenceID", "decimalLatitude", "decimalLongitude",
+    "eventDate", "recordedBy", "scientificName", "individualCount",
+})
+
+
+def reject_raw_occurrence_fields(value):
+    """Reject per-record fields anywhere in a purported safe aggregate."""
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key in PRIVATE_OCCURRENCE_FIELDS:
+                raise ValueError("raw occurrence field in aggregate snapshot")
+            reject_raw_occurrence_fields(item)
+    elif isinstance(value, list):
+        for item in value:
+            reject_raw_occurrence_fields(item)
+
+
+def load_snapshot(path):
+    """Load only an internally consistent published teaching aggregate."""
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("snapshot must be a mapping")
+    reject_raw_occurrence_fields(data)
+    if set(data) != SNAPSHOT_FIELDS:
+        raise ValueError("unexpected snapshot fields")
+    # Limitations are explanatory prose only, not an extension point for
+    # unreviewed raw records or arbitrary nested objects.
+    limitations = data.get("limitations")
+    if (not isinstance(limitations, list) or not limitations or
+            any(type(item) is not str or not item.strip() for item in limitations)):
+        raise ValueError("invalid aggregate limitations")
+    if data.get("schema") != SCHEMA:
+        raise ValueError("unrecognized snapshot schema")
+    if data.get("GBIF_occurrence_download_doi") is not None:
+        raise ValueError("unverified occurrence-download DOI must not be asserted")
+    if data.get("projected_crs") != "EPSG:32652" or data.get("grid_m") != 10000:
+        raise ValueError("unsupported projected aggregation")
+    if (data.get("first_page_limit") != 100 or data.get("rows_in_page") != 100
+            or data.get("query_country") != "KR" or data.get("query_year") != 2024
+            or data.get("query_taxon") != "Aves" or data.get("query_taxon_rank") != "class"):
+        raise ValueError("changed scientific source selection")
+    source = urlsplit(data.get("original_api_query", ""))
+    if (source.scheme != "https" or source.netloc != "api.gbif.org"
+            or source.path != "/v1/occurrence/search" or source.fragment
+            or parse_qs(source.query, keep_blank_values=True) != EXPECTED_SEARCH):
+        raise ValueError("changed scientific source selection")
+    if not isinstance(data.get("accepted_count"), int) or data["accepted_count"] <= 0:
+        raise ValueError("invalid screened record count")
+    rejected = data.get("excluded")
+    if not isinstance(rejected, dict) or any(not isinstance(v,int) or v<0 for v in rejected.values()):
+        raise ValueError("invalid exclusion counts")
+    if data.get("rows_in_page") != data["accepted_count"] + sum(rejected.values()):
+        raise ValueError("screening audit mismatch")
+    first_counts = data.get("first_page_dataset_counts")
+    accepted_counts = data.get("accepted_dataset_counts")
+    dois = data.get("dataset_dois")
+    if not all(isinstance(x,dict) for x in (first_counts,accepted_counts,dois)):
+        raise ValueError("missing provenance")
+    if sum(first_counts.values()) != data["rows_in_page"] or sum(accepted_counts.values()) != data["accepted_count"]:
+        raise ValueError("publisher count mismatch")
+    if set(first_counts) != set(dois) or not set(accepted_counts).issubset(set(first_counts)):
+        raise ValueError("missing publisher citation")
+    # Totals alone can hide impossible per-publisher screening results.
+    if (any(type(n) is not int or n <= 0 for n in first_counts.values()) or
+            any(type(n) is not int or n <= 0 for n in accepted_counts.values())):
+        raise ValueError("invalid dataset record count")
+    if any(accepted_counts[key] > first_counts[key] for key in accepted_counts):
+        raise ValueError("accepted records exceed source dataset page count")
+    if any(not isinstance(doi, str) or not doi.startswith("10.15468/") or len(doi) <= 9
+           for doi in dois.values()):
+        raise ValueError("invalid dataset citation DOI")
+    fine, coarse = derive_grids(data.get("cells_10km"))
+    if sum(fine.values()) != data["accepted_count"] or sum(coarse.values()) != data["accepted_count"]:
+        raise ValueError("published grid does not conserve records")
+    if len(fine) != data.get("occupied_cells_10km") or len(coarse) != data.get("occupied_cells_50km"):
+        raise ValueError("published occupied-cell counts differ")
+    if data.get("reported_uncertainty_max_m") != 1000:
+        raise ValueError("screening threshold mismatch")
+    return data
+
+def derive_grids(cells):
+    """A 10-km projected cell fits exactly inside one origin-aligned 50-km cell."""
+    if not isinstance(cells,list) or not cells:
+        raise ValueError("no grid cells")
+    fine = {}
+    coarse = Counter()
+    for row in cells:
+        if (not isinstance(row,list) or len(row)!=3 or
+                any(type(v) is not int for v in row)):
+            raise ValueError("malformed cell/count entry")
+        gx,gy,n = row
+        if n <= 0 or (gx,gy) in fine:
+            raise ValueError("duplicate or empty cell")
+        fine[(gx,gy)] = n
+        coarse[(gx//5,gy//5)] += n
+    return fine,dict(coarse)
