@@ -71,12 +71,18 @@ def audit_download_to_candidate(archive_path, metadata, snapshot, doi,
                 source, encoding="utf-8-sig", newline=""), delimiter="\t")
             if not REQUIRED.issubset(rows.fieldnames or []):
                 raise ValueError("ARCHIVE_REQUIRED_OCCURRENCE_FIELDS_MISSING")
+            if len(rows.fieldnames) != len(set(rows.fieldnames)):
+                raise ValueError("ARCHIVE_DUPLICATE_OCCURRENCE_COLUMNS")
             accepted, rejected, ids = [], Counter(), set()
             all_rows = 0
             source_counts = Counter()
             qualified_counts = Counter()
             for row in rows:
                 all_rows += 1
+                # DictReader maps surplus cells under a None key and absent
+                # cells to None. Neither is a source record safe to cite.
+                if None in row or any(value is None for value in row.values()):
+                    raise ValueError("ARCHIVE_MALFORMED_OCCURRENCE_ROW")
                 if (row["countryCode"] != "KR" or
                     row["basisOfRecord"] != "HUMAN_OBSERVATION" or
                     row["year"] != "2024" or
