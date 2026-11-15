@@ -91,6 +91,21 @@ The revised archive auditor now requires that status column and excludes `NOT_DE
 
 This NSMK-only archive does not match the notebook's earlier nonrandom first-100-record sample that mixed providers. The existing first-page figure and notebook input are unchanged. Replacing them would require a separately justified screening decision, fresh figures and runtime tests. The EDS Book draft remains unsubmitted for editorial review.
 
+### Separate DOI-backed, unknown-precision teaching candidate (16 November 2026)
+
+The published [GBIF download 10.15468/dl.u7tcq5](https://doi.org/10.15468/dl.u7tcq5) contains 3,359 CC0 bird-observation records from the National Science Museum of Korea [dataset 10.15468/ya2fjz](https://doi.org/10.15468/ya2fjz). Its ZIP and source citations were checked again against SHA-256 `9ed28c2cfb96d83a0f0bdcba90598474efc1f34f675619c049da308ffce8c098`. The 2024 subset has 3,207 records, all with **unreported** coordinate uncertainty; none passes the notebook's original rule requiring a *reported* value of 1–1,000 m.
+
+A new, separately tested script, `nsmk_unknown_precision_candidate.py`, offers a different classroom experiment. It accepts only that fixed DOI archive and its public metadata, checks the original CC0 rights and dataset citations, excludes non-detections, rejects malformed or duplicate positions, and derives grid-cell counts without exporting original coordinates, observer details or occurrence IDs. In the source-verified 2024 cohort, the 3,207 rows occupy **206 analyst-defined 10 km cells** or **49 analyst-defined 50 km cells** when projected to EPSG:32652 (pyproj 3.7.1). These are *record-binning results*. Because original coordinate precision was not reported, neither grid is evidence that an observation is accurate to 10 km or 50 km. Blank cells still cannot prove species absence; occupied-cell counts do not measure birds, abundance or sampling effort.
+
+For private author-side reproduction, keep the original DwC-A ZIP and GBIF's exact `/v1/occurrence/download/10.15468/dl.u7tcq5` metadata JSON outside the repository, and run:
+
+```sh
+python nsmk_unknown_precision_candidate.py --archive path/to/0015299-260903145123482.zip --metadata path/to/gbif-download-metadata.json --output local-grid-candidate.json
+python -m unittest discover -p 'test_*.py'
+```
+
+The script refuses to overwrite its output. No raw GBIF occurrence archive, exact observation coordinates or personal information is committed. This author-side candidate is **not** a replacement for the notebook's first-page teaching snapshot, not a DOI matching the original mixed-source live search, and not an accepted EDS Book notebook. A decision about the teaching dataset, final map/caption design, publisher attribution, Binder execution and Editor-in-Chief review remains outstanding. This alternate experiment preserves missing location precision as an explicit limitation instead of silently treating it as zero uncertainty.
+
 ### Whole-query read-only check (11 November 2026)
 
 A separate, opt-in GET-only audit of the [original GBIF occurrence search](https://api.gbif.org/v1/occurrence/search?country=KR&taxonKey=212&basisOfRecord=HUMAN_OBSERVATION&year=2024&license=CC0_1_0&hasCoordinate=true&hasGeospatialIssue=false&limit=300&offset=0) inspected all 5,519 returned records across 19 pages between 10:41 and 10:42 UTC on 11 November 2026. Applying the notebook's original occurrence_grid.screen 1,000m criterion to the entire result excluded 5,208 records with missing reported coordinate uncertainty and 36 above the illustrative threshold. **275 records passed**, all from one iNaturalist dataset key (50c9509d-22c7-4a22-a47d-8c48425ef4a7). The search involves six contributing dataset keys in total.
