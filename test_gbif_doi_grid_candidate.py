@@ -137,6 +137,41 @@ class ArchiveCandidateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "REQUIRED_OCCURRENCE_FIELDS"):
             self._check(self._zip(fields=f))
 
+    def test_reject_duplicate_tsv_headers_before_screening(self):
+        # Two gbifID columns can silently overwrite each other in DictReader.
+        # No DOI archive should be accepted with ambiguous source identity.
+        header = FIELDS + ["gbifID"]
+        with self.assertRaisesRegex(ValueError, "DUPLICATE_OCCURRENCE_COLUMNS"):
+            self._check(self._zip(fields=header))
+
+    def test_reject_row_with_unexpected_extra_tsv_cell(self):
+        # A row longer than the header puts its extra value under the None key.
+        # The old candidate path silently discarded this malformed source row.
+        contents=archived_tsv(self.rows)
+        lines=contents.splitlines()
+        lines[1]+="\tUNEXPECTED"
+        with ZipFile(self.archive, "w", compression=ZIP_DEFLATED) as z:
+            z.writestr("occurrence.txt", "\n".join(lines)+"\n")
+            z.writestr("rights.txt", "http://creativecommons.org/publicdomain/zero/1.0/legalcode")
+            z.writestr("citations.txt", "Dataset: https://doi.org/10.15468/testdoi")
+        self.metadata["size"]=self.archive.stat().st_size
+        expected=sha256(self.archive.read_bytes()).hexdigest()
+        with self.assertRaisesRegex(ValueError, "MALFORMED_OCCURRENCE_ROW"):
+            self._check(expected)
+
+    def test_reject_row_shorter_than_tsv_header(self):
+        contents=archived_tsv(self.rows)
+        lines=contents.splitlines()
+        lines[1]="\t".join(lines[1].split("\t")[:-1])
+        with ZipFile(self.archive, "w", compression=ZIP_DEFLATED) as z:
+            z.writestr("occurrence.txt", "\n".join(lines)+"\n")
+            z.writestr("rights.txt", "http://creativecommons.org/publicdomain/zero/1.0/legalcode")
+            z.writestr("citations.txt", "Dataset: https://doi.org/10.15468/testdoi")
+        self.metadata["size"]=self.archive.stat().st_size
+        expected=sha256(self.archive.read_bytes()).hexdigest()
+        with self.assertRaisesRegex(ValueError, "MALFORMED_OCCURRENCE_ROW"):
+            self._check(expected)
+
     def test_reject_non_cc0_or_out_of_scope_record(self):
         for k,v in [("license","CC_BY_4_0"),("year","2023"),
                     ("countryCode","US"),("hasGeospatialIssues","true"),
