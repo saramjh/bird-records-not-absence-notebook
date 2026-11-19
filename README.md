@@ -8,6 +8,10 @@ The notebook screens CC0-licensed records from a **bounded first page** of the l
 
 This page of the live API is non-random, not versioned and may change. It is **not a completed data product**. Before review, replace it with a [DOI-versioned GBIF occurrence download](https://www.gbif.org/citation-guidelines), audit dataset publisher credits and licence, and test the final notebook through Binder. No third-party photos or sound recordings are distributed. Fine-scale occurrence coordinates are not stored in the repository.
 
+## AI assistance
+
+ChatGPT (OpenAI) assisted with source research, technical and code review, test drafting, and language editing during author-side preparation. The occurrence data and reported measurements came from cited sources and recorded checks, not from a generated bird-observation dataset. The author remains responsible for verifying citations, source rights, code behavior, and the final notebook. This disclosure does not indicate EDS Book review or acceptance.
+
 ## Two-minute reader exercise: what does an empty bird map tell us?
 
 Imagine you find a blank square on a map of South Korean bird records. Before treating it as evidence that no bird was present, check three things:
