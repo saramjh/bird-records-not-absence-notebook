@@ -1,5 +1,8 @@
 channels:
   - conda-forge
 dependencies:
-  - python=3.10
-  - numpy
+  - python=3.11
+  - numpy=2.1
+  - matplotlib=3.9
+  - pyproj=3.7
+  - ipykernel
